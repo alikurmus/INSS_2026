@@ -111,6 +111,53 @@ class FitManager:
             "with_systematic_shape": (lo_shape, hi_shape),
         }
 
+    def run_full_profile(self, S_values=None, level=0.5, plot=True):
+        """Run full profile workflow: fits, scans, intervals, printing, and plotting.
+
+        Returns a dict with keys:
+          - 'scans': the scans dict from `run_profile_scans`
+          - 'intervals': computed intervals dict
+          - 'fits': tuple (fit_no_shape, fit_with_shape)
+        """
+        if S_values is None:
+            S_values = np.linspace(0.0, 120.0, 601)
+
+        # Ensure fits are executed and stored
+        if self.fit_no_shape is None or self.fit_with_shape is None:
+            self.run_both()
+
+        scans = self.run_profile_scans(S_values)
+
+        no = scans["no_systematic_shape"]
+        withs = scans["with_systematic_shape"]
+
+        intervals = {
+            "no_systematic_shape": self.find_interval(no[0], no[2], level=level),
+            "with_systematic_shape": self.find_interval(withs[0], withs[2], level=level),
+        }
+
+        # Print a concise summary
+        print("Profile-likelihood intervals using Delta NLL = {level}")
+        print("--------------------------------------------------")
+        print(
+            f"Without shape systematic: S = {self.fit_no_shape.x[0]:.2f} "
+            f"+{intervals['no_systematic_shape'][1] - self.fit_no_shape.x[0]:.2f} -{self.fit_no_shape.x[0] - intervals['no_systematic_shape'][0]:.2f} events",
+        )
+        print(
+            f"With shape systematic:    S = {self.fit_with_shape.x[0]:.2f} "
+            f"+{intervals['with_systematic_shape'][1] - self.fit_with_shape.x[0]:.2f} -{self.fit_with_shape.x[0] - intervals['with_systematic_shape'][0]:.2f} events",
+        )
+
+        if plot:
+            self.plot_profile_scans(
+                no[0],
+                no[2],
+                withs[2],
+                level=level,
+            )
+
+        return {"scans": scans, "intervals": intervals, "fits": (self.fit_no_shape, self.fit_with_shape)}
+
     def print_results(self):
         """Pretty-print the stored fit results.
 
