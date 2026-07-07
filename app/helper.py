@@ -196,15 +196,33 @@ def nll_ex1(parameters, include_shape_systematic=True, fixed_S=None):
 def _mode_to_bool(mode):
     if isinstance(mode, str):
         mode = mode.lower()
-        if mode in ("with_shape", "withshape", "shape"):
+        # Accept both the old short names and the new verbose names.
+        if mode in (
+            "with_shape",
+            "withshape",
+            "shape",
+            "with_systematic_shape",
+            "withsystematicshape",
+            "with-systematic-shape",
+            "with systematic shape",
+        ):
             return True
-        if mode in ("no_shape", "noshape", "no-shape", "no shape"):
+        if mode in (
+            "no_shape",
+            "noshape",
+            "no-shape",
+            "no shape",
+            "no_systematic_shape",
+            "nosystematicshape",
+            "no-systematic-shape",
+            "no systematic shape",
+        ):
             return False
         raise ValueError(f"Unknown mode string: {mode}")
     return bool(mode)
 
 
-def nll_extended(parameters, mode="with_shape", fixed_S=None):
+def nll_extended(parameters, mode="with_systematic_shape", fixed_S=None):
     include = _mode_to_bool(mode)
     return nll_ex1(parameters, include_shape_systematic=include, fixed_S=fixed_S)
 
@@ -257,11 +275,6 @@ def fit_ex1(include_shape_systematic):
     )
 
     return result
-
-
-def fit_extended(mode="with_shape"):
-    include = _mode_to_bool(mode)
-    return fit_ex1(include)
 
 
 # Stacked fit plots
