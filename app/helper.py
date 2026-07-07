@@ -192,6 +192,23 @@ def nll_ex1(parameters, include_shape_systematic=True, fixed_S=None):
     return float(nll)
 
 
+# Backwards-compatible wrappers and helpers for notebook usage
+def _mode_to_bool(mode):
+    if isinstance(mode, str):
+        mode = mode.lower()
+        if mode in ("with_shape", "withshape", "shape"):
+            return True
+        if mode in ("no_shape", "noshape", "no-shape", "no shape"):
+            return False
+        raise ValueError(f"Unknown mode string: {mode}")
+    return bool(mode)
+
+
+def nll_extended(parameters, mode="with_shape", fixed_S=None):
+    include = _mode_to_bool(mode)
+    return nll_ex1(parameters, include_shape_systematic=include, fixed_S=fixed_S)
+
+
 # NLL minimization
 
 def fit_ex1(include_shape_systematic):
@@ -242,14 +259,24 @@ def fit_ex1(include_shape_systematic):
     return result
 
 
+def fit_extended(mode="with_shape"):
+    include = _mode_to_bool(mode)
+    return fit_ex1(include)
+
+
 # Stacked fit plots
 
-def plot_fit_result(fit_result, include_shape_systematic, title):
+def plot_fit_result(fit_result, include_shape_systematic=None, mode=None, title=None):
     """
     Plot the fitted signal + background model as a stacked histogram.
     """
 
     # Decode best-fit parameters.
+    if mode is not None:
+        include_shape_systematic = _mode_to_bool(mode)
+    if include_shape_systematic is None:
+        include_shape_systematic = True
+
     if include_shape_systematic:
         S_hat, B_hat, alpha_hat = fit_result.x
     else:
@@ -335,7 +362,12 @@ def profile_scan_in_S(include_shape_systematic, S_values):
     """
 
     # Choose the global best fit as the first guess for nuisance parameters.
-    if include_shape_systematic:
+    if isinstance(include_shape_systematic, str):
+        include = _mode_to_bool(include_shape_systematic)
+    else:
+        include = bool(include_shape_systematic)
+
+    if include:
         # Nuisance parameters are [B, alpha].
         current_guess = fit_with_shape.x[1:].copy()
         bounds = [(0.0, None), (-5.0, 5.0)]
