@@ -6,6 +6,9 @@ service functions in `app.helper`.
 """
 from __future__ import annotations
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 import app.helper as helper
 
 
@@ -38,6 +41,68 @@ class FitManager:
         self.fit_no_shape = helper.fit_extended(mode="no_systematic_shape")
         self.fit_with_shape = helper.fit_extended(mode="with_systematic_shape")
         return self.fit_no_shape, self.fit_with_shape
+
+    def profile_scan_for_mode(self, S_values, mode="no_systematic_shape"):
+        """Run a profile scan in S for a single mode.
+
+        Returns (S_values, nll_scan, delta_nll, profiled_nuisance)
+        """
+        # Ensure the corresponding global fit exists for the baseline NLL_min
+        if mode in ("no_systematic_shape", "no_shape", False):
+            if self.fit_no_shape is None:
+                self.run_both()
+            baseline = self.fit_no_shape
+        else:
+            if self.fit_with_shape is None:
+                self.run_both()
+            baseline = self.fit_with_shape
+
+        # Compute the profile NLL scan using the helper function.
+        nll_scan, profiled_nuisance = helper.profile_scan_in_S(mode, S_values)
+
+        # Delta NLL relative to the baseline NLL minimum.
+        delta_nll = nll_scan - baseline.fun
+
+        return S_values, nll_scan, delta_nll, profiled_nuisance
+
+    def run_profile_scans(self, S_values=None):
+        """Run both profile scans (no-shape and with-shape).
+
+        Returns a dict with keys 'no' and 'with' mapping to the tuples
+        returned by `profile_scan_for_mode`.
+        """
+        if S_values is None:
+            S_values = np.linspace(0.0, 120.0, 601)
+
+        no = self.profile_scan_for_mode(S_values, mode="no_systematic_shape")
+        with_shape = self.profile_scan_for_mode(S_values, mode="with_systematic_shape")
+
+        return {"no": no, "with": with_shape}
+
+    def find_interval(self, S_values, delta_nll, level=0.5):
+        """Convenience wrapper around helper.find_interval_from_delta_nll."""
+        return helper.find_interval_from_delta_nll(S_values, delta_nll, level=level)
+
+    def plot_profile_scans(self, S_values, delta_nll_no, delta_nll_with, level=0.5, **plot_kwargs):
+        """Plot two delta-NLL scans on the same axes and annotate intervals.
+
+        Returns a dict with interval endpoints for both scans.
+        """
+        fig, ax = plt.subplots()
+        ax.plot(S_values, delta_nll_no, label=plot_kwargs.get("label_no", "No shape systematic"))
+        ax.plot(S_values, delta_nll_with, label=plot_kwargs.get("label_with", "With profiled shape systematic"))
+        ax.axhline(level, linestyle="--", color="black", label=f"Delta NLL = {level}")
+        ax.set_xlabel(plot_kwargs.get("xlabel", "Fixed signal yield S"))
+        ax.set_ylabel(plot_kwargs.get("ylabel", r"$\Delta\mathrm{NLL}(S)$"))
+        ax.set_title(plot_kwargs.get("title", "Profile likelihood scan in S"))
+        ax.set_ylim(plot_kwargs.get("ylim", (0, 6)))
+        ax.legend()
+        plt.show()
+
+        lo_no, hi_no = self.find_interval(S_values, delta_nll_no, level=level)
+        lo_shape, hi_shape = self.find_interval(S_values, delta_nll_with, level=level)
+
+        return {"no": (lo_no, hi_no), "with": (lo_shape, hi_shape)}
 
     def print_results(self):
         """Pretty-print the stored fit results.
