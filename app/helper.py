@@ -238,10 +238,6 @@ def fit_extended(mode="with_systematic_shape"):
     return fit_ex1(include)
 
 
-# Convenience aliases kept for backwards compatibility with notebook usage.
-# Legacy convenience aliases removed. Use `fit_extended(mode=...)` or
-# call `fit_ex1(True/False)` explicitly. This avoids module-level state.
-
 
 # NLL minimization
 
@@ -417,7 +413,7 @@ def profile_scan_in_S(include_shape_systematic, S_values):
         result = minimize(
             fun=lambda nuisance: nll_ex1(
                 nuisance,
-                include_shape_systematic=include_shape_systematic,
+                include_shape_systematic=include,
                 fixed_S=S_fixed,
             ),
             x0=current_guess,
