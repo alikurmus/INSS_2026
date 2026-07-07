@@ -4,7 +4,8 @@ This repository contains a worked Jupyter notebook with detailed solutions to th
 
 ## Contents
 
-- `INSS_Stats_Detailed_Solutions.ipynb` — main solution notebook.
+- `INSS_Exercise1_Detailed.ipynb` — main solution notebook.
+- `helper_ex1.py` — helper module with the functions used by the notebook.
 - `env.yaml` — Conda environment file.
 - `data/exercise_1/` — data for Exercise 1.
 - `data/exercise_2/` — data for Exercise 2.
@@ -34,8 +35,8 @@ python -m ipykernel install --user --name inss-stats-2026 --display-name "Python
 Start JupyterLab from the repository root:
 
 ```bash
-cd ~/Repos/INSS_2026
+cd ~/Desktop/project_summer_school_UCSB/INSS_2026
 jupyter lab
 ```
 
-Open a notebook you would like to use your solutions, choose the kernel `Python (INSS Stats 2026)`, and run all cells.
+Open `INSS_Exercise1_Detailed.ipynb`, choose the kernel `Python (INSS Stats 2026)`, and run all cells.
