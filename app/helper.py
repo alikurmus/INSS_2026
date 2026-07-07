@@ -13,9 +13,6 @@ from __main__ import (
     s_pdf,
 )
 
-fit_no_shape = None
-fit_with_shape = None
-
 
 # Background morphing function
 
@@ -242,12 +239,8 @@ def fit_extended(mode="with_systematic_shape"):
 
 
 # Convenience aliases kept for backwards compatibility with notebook usage.
-def fit_with_shape():
-    return fit_ex1(True)
-
-
-def fit_no_shape():
-    return fit_ex1(False)
+# Legacy convenience aliases removed. Use `fit_extended(mode=...)` or
+# call `fit_ex1(True/False)` explicitly. This avoids module-level state.
 
 
 # NLL minimization
@@ -404,12 +397,15 @@ def profile_scan_in_S(include_shape_systematic, S_values):
         include = bool(include_shape_systematic)
 
     if include:
-        # Nuisance parameters are [B, alpha].
-        current_guess = fit_with_shape.x[1:].copy()
+        # Nuisance parameters are [B, alpha]. Seed from a full fit including
+        # the shape systematic so the scan starts near the global minimum.
+        result_global = fit_extended(mode="with_systematic_shape")
+        current_guess = result_global.x[1:].copy()
         bounds = [(0.0, None), (-5.0, 5.0)]
     else:
-        # Nuisance parameter is [B].
-        current_guess = np.array([fit_no_shape.x[1]])
+        # Nuisance parameter is [B]. Seed from the fit without the shape systematic.
+        result_global = fit_extended(mode="no_systematic_shape")
+        current_guess = np.array([result_global.x[1]])
         bounds = [(0.0, None)]
 
     nll_values = []
