@@ -227,6 +227,29 @@ def nll_extended(parameters, mode="with_systematic_shape", fixed_S=None):
     return nll_ex1(parameters, include_shape_systematic=include, fixed_S=fixed_S)
 
 
+# User-facing fit wrapper that accepts mode strings like 'with_systematic_shape' or 'no_systematic_shape'
+def fit_extended(mode="with_systematic_shape"):
+    """Run the NLL minimization with a friendly mode string.
+
+    Parameters
+    ----------
+    mode : str or bool
+        If a string, accepted values are 'with_systematic_shape' or 'no_systematic_shape'
+        (and several short variants). If boolean, True means include shape systematic.
+    """
+    include = _mode_to_bool(mode)
+    return fit_ex1(include)
+
+
+# Convenience aliases kept for backwards compatibility with notebook usage.
+def fit_with_shape():
+    return fit_ex1(True)
+
+
+def fit_no_shape():
+    return fit_ex1(False)
+
+
 # NLL minimization
 
 def fit_ex1(include_shape_systematic):
