@@ -74,10 +74,14 @@ class FitManager:
         if S_values is None:
             S_values = np.linspace(0.0, 120.0, 601)
 
-        no = self.profile_scan_for_mode(S_values, mode="no_systematic_shape")
-        with_shape = self.profile_scan_for_mode(S_values, mode="with_systematic_shape")
+        no_scan = self.profile_scan_for_mode(S_values, mode="no_systematic_shape")
+        with_scan = self.profile_scan_for_mode(S_values, mode="with_systematic_shape")
 
-        return {"no": no, "with": with_shape}
+        # Use verbose, self-descriptive keys for clarity in notebooks.
+        return {
+            "no_systematic_shape": no_scan,
+            "with_systematic_shape": with_scan,
+        }
 
     def find_interval(self, S_values, delta_nll, level=0.5):
         """Convenience wrapper around helper.find_interval_from_delta_nll."""
@@ -102,7 +106,10 @@ class FitManager:
         lo_no, hi_no = self.find_interval(S_values, delta_nll_no, level=level)
         lo_shape, hi_shape = self.find_interval(S_values, delta_nll_with, level=level)
 
-        return {"no": (lo_no, hi_no), "with": (lo_shape, hi_shape)}
+        return {
+            "no_systematic_shape": (lo_no, hi_no),
+            "with_systematic_shape": (lo_shape, hi_shape),
+        }
 
     def print_results(self):
         """Pretty-print the stored fit results.
